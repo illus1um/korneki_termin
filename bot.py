@@ -1,6 +1,3 @@
-"""
-Главный файл для запуска Telegram-бота
-"""
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher
