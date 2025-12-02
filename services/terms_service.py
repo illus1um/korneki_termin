@@ -9,7 +9,7 @@ from pathlib import Path
 class TermsService:
     """Сервис для загрузки и поиска терминов"""
     
-    def __init__(self, csv_path: str = 'data/terms_sample.csv'):
+    def __init__(self, csv_path: str = 'data/extracted_terms_full.csv'):
         """
         Инициализация сервиса
         
@@ -24,14 +24,22 @@ class TermsService:
         """Загружает термины из CSV файла в память"""
         try:
             with open(self.csv_path, 'r', encoding='utf-8') as file:
-                reader = csv.DictReader(file)
-                self.terms = list(reader)
-            print(f"✅ Загружено {len(self.terms)} терминов из {self.csv_path}")
+                # Используем quoting=csv.QUOTE_MINIMAL для корректной обработки запятых
+                reader = csv.DictReader(file, quoting=csv.QUOTE_MINIMAL)
+                # Очищаем данные от лишних пробелов
+                self.terms = []
+                for row in reader:
+                    cleaned_row = {
+                        key.strip(): value.strip() if value else '' 
+                        for key, value in row.items()
+                    }
+                    self.terms.append(cleaned_row)
+            print(f"[OK] Загружено {len(self.terms)} терминов из {self.csv_path}")
         except FileNotFoundError:
-            print(f"❌ Файл {self.csv_path} не найден")
+            print(f"[ERROR] Файл {self.csv_path} не найден")
             self.terms = []
         except Exception as e:
-            print(f"❌ Ошибка при загрузке CSV: {e}")
+            print(f"[ERROR] Ошибка при загрузке CSV: {e}")
             self.terms = []
     
     def get_categories(self, lang: str = 'kk') -> List[str]:

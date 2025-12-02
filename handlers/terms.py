@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from models import UserState
 from services import TermsService
 from keyboards import get_results_keyboard, get_search_keyboard
-from utils.texts import get_text
+from utils.texts import get_text, translate_category
 from utils.formatter import format_results_page
 
 router = Router()
@@ -56,6 +56,8 @@ async def handle_cancel_search(callback: CallbackQuery, state: FSMContext):
     lang = data.get('language', 'kk')
     current_results = data.get('current_results', [])
     current_page = data.get('current_page', 1)
+    category = data.get('selected_category', '')
+    subcategory = data.get('selected_subcategory', '')
     
     # Возвращаемся к просмотру результатов
     await state.set_state(UserState.viewing_results)
@@ -64,8 +66,12 @@ async def handle_cancel_search(callback: CallbackQuery, state: FSMContext):
     per_page = 10
     total_count = len(current_results)
     
-    header = get_text('results_found', lang, count=total_count) + "\n\n"
-    results_text = format_results_page(current_results, page=current_page, per_page=per_page)
+    # Формируем заголовок с категорией и подкатегорией
+    category_display = translate_category(category, lang) if lang == 'ru' else category
+    header = get_text('results_found', lang, count=total_count)
+    header += f"\n📂 {category_display} / {subcategory}\n\n"
+    
+    results_text = format_results_page(current_results, page=current_page, per_page=per_page, show_category=False)
     
     message_text = header + results_text
     
@@ -142,8 +148,12 @@ async def handle_search_query(message: Message, state: FSMContext):
     per_page = 10
     total_count = len(results)
     
-    header = get_text('search_results', lang, query=query, count=total_count) + "\n\n"
-    results_text = format_results_page(results, page=1, per_page=per_page)
+    # Формируем заголовок с категорией и подкатегорией
+    category_display = translate_category(category, lang) if lang == 'ru' else category
+    header = get_text('search_results', lang, query=query, count=total_count)
+    header += f"\n📂 {category_display} / {subcategory}\n\n"
+    
+    results_text = format_results_page(results, page=1, per_page=per_page, show_category=False)
     
     message_text = header + results_text
     
@@ -177,6 +187,8 @@ async def handle_next_page(callback: CallbackQuery, state: FSMContext):
     lang = data.get('language', 'kk')
     current_results = data.get('current_results', [])
     current_page = data.get('current_page', 1)
+    category = data.get('selected_category', '')
+    subcategory = data.get('selected_subcategory', '')
     
     per_page = 10
     total_pages = (len(current_results) + per_page - 1) // per_page
@@ -187,8 +199,11 @@ async def handle_next_page(callback: CallbackQuery, state: FSMContext):
     
     # Формируем сообщение
     total_count = len(current_results)
-    header = get_text('results_found', lang, count=total_count) + "\n\n"
-    results_text = format_results_page(current_results, page=next_page, per_page=per_page)
+    category_display = translate_category(category, lang) if lang == 'ru' else category
+    header = get_text('results_found', lang, count=total_count)
+    header += f"\n📂 {category_display} / {subcategory}\n\n"
+    
+    results_text = format_results_page(current_results, page=next_page, per_page=per_page, show_category=False)
     
     message_text = header + results_text
     
@@ -225,6 +240,8 @@ async def handle_prev_page(callback: CallbackQuery, state: FSMContext):
     lang = data.get('language', 'kk')
     current_results = data.get('current_results', [])
     current_page = data.get('current_page', 1)
+    category = data.get('selected_category', '')
+    subcategory = data.get('selected_subcategory', '')
     
     per_page = 10
     total_pages = (len(current_results) + per_page - 1) // per_page
@@ -235,8 +252,11 @@ async def handle_prev_page(callback: CallbackQuery, state: FSMContext):
     
     # Формируем сообщение
     total_count = len(current_results)
-    header = get_text('results_found', lang, count=total_count) + "\n\n"
-    results_text = format_results_page(current_results, page=prev_page, per_page=per_page)
+    category_display = translate_category(category, lang) if lang == 'ru' else category
+    header = get_text('results_found', lang, count=total_count)
+    header += f"\n📂 {category_display} / {subcategory}\n\n"
+    
+    results_text = format_results_page(current_results, page=prev_page, per_page=per_page, show_category=False)
     
     message_text = header + results_text
     

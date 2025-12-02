@@ -10,6 +10,7 @@ from keyboards import get_subcategories_keyboard, get_results_keyboard
 from services import TermsService
 from utils.texts import get_text, translate_category
 from utils.formatter import format_results_page
+from utils.category_mapper import get_mapper
 
 router = Router()
 terms_service = TermsService()
@@ -24,8 +25,15 @@ async def handle_category_selection(callback: CallbackQuery, state: FSMContext):
         callback: Callback от inline кнопки
         state: FSM состояние пользователя
     """
-    # Извлекаем название категории из callback_data
-    category = callback.data.split(":", 1)[1]  # "cat:Медицина" -> "Медицина"
+    # Извлекаем ID категории из callback_data и преобразуем в название
+    cat_id_str = callback.data.split(":", 1)[1]  # "cat:1" -> "1"
+    cat_id = int(cat_id_str)
+    mapper = get_mapper()
+    category = mapper.get_category_name(cat_id)
+    
+    if not category:
+        await callback.answer("❌ Ошибка: категория не найдена", show_alert=True)
+        return
     
     # Получаем текущий язык
     data = await state.get_data()
@@ -34,7 +42,7 @@ async def handle_category_selection(callback: CallbackQuery, state: FSMContext):
     # Сохраняем выбранную категорию
     await state.update_data(selected_category=category)
     
-    # Получаем список подкатегорий
+    # Получаем список подкатегорий для текущего языка
     subcategories = terms_service.get_subcategories(category, lang=lang)
     
     if not subcategories:
@@ -71,8 +79,15 @@ async def handle_subcategory_selection(callback: CallbackQuery, state: FSMContex
         callback: Callback от inline кнопки
         state: FSM состояние пользователя
     """
-    # Извлекаем название подкатегории из callback_data
-    subcategory = callback.data.split(":", 1)[1]  # "sub:Емхана" -> "Емхана"
+    # Извлекаем ID подкатегории из callback_data и преобразуем в название
+    subcat_id_str = callback.data.split(":", 1)[1]  # "sub:1" -> "1"
+    subcat_id = int(subcat_id_str)
+    mapper = get_mapper()
+    subcategory = mapper.get_subcategory_name(subcat_id)
+    
+    if not subcategory:
+        await callback.answer("❌ Ошибка: подкатегория не найдена", show_alert=True)
+        return
     
     # Получаем текущие данные
     data = await state.get_data()
@@ -86,6 +101,7 @@ async def handle_subcategory_selection(callback: CallbackQuery, state: FSMContex
     )
     
     # Получаем термины из выбранной категории/подкатегории
+    # ВАЖНО: фильтруем по выбранному языку интерфейса
     terms = terms_service.get_terms_by_category(category, subcategory, lang=lang)
     
     if not terms:
@@ -105,8 +121,12 @@ async def handle_subcategory_selection(callback: CallbackQuery, state: FSMContex
     per_page = 10
     total_count = len(terms)
     
-    header = get_text('results_found', lang, count=total_count) + "\n\n"
-    results_text = format_results_page(terms, page=1, per_page=per_page, show_lang=False)
+    # Формируем заголовок с категорией и подкатегорией
+    category_display = translate_category(category, lang) if lang == 'ru' else category
+    header = get_text('results_found', lang, count=total_count)
+    header += f"\n📂 {category_display} / {subcategory}\n\n"
+    
+    results_text = format_results_page(terms, page=1, per_page=per_page, show_lang=False, show_category=False)
     
     message_text = header + results_text
     
