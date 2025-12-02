@@ -9,7 +9,7 @@ from aiogram.fsm.context import FSMContext
 from models import UserState
 from keyboards import get_language_keyboard, get_categories_keyboard, get_subcategories_keyboard
 from services import TermsService
-from utils.texts import get_text
+from utils.texts import get_text, WELCOME_BILINGUAL
 
 router = Router()
 terms_service = TermsService()
@@ -19,23 +19,23 @@ terms_service = TermsService()
 async def cmd_start(message: Message, state: FSMContext):
     """
     Обработчик команды /start
-    Показывает приветствие и предлагает выбрать язык
+    Показывает двуязычное приветствие и предлагает выбрать язык
     
     Args:
         message: Входящее сообщение
         state: FSM состояние пользователя
     """
-    # По умолчанию язык казахский (приоритет)
-    welcome_text = get_text('welcome', lang='kk')
+    # Сбрасываем состояние
+    await state.clear()
     
     # Переходим в состояние выбора языка
     await state.set_state(UserState.choosing_language)
     
-    # Отправляем приветствие с кнопками выбора языка
+    # Отправляем двуязычное приветствие с кнопками выбора языка
     keyboard = get_language_keyboard()
     
     await message.answer(
-        text=welcome_text,
+        text=WELCOME_BILINGUAL,
         reply_markup=keyboard
     )
 

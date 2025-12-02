@@ -1,40 +1,70 @@
 """
 Сервис для работы с терминами из CSV файла
+Использует паттерн Singleton для единственного экземпляра
 """
 import csv
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Optional
 from pathlib import Path
 
 
 class TermsService:
-    """Сервис для загрузки и поиска терминов"""
+    """Сервис для загрузки и поиска терминов (Singleton)"""
+    
+    _instance: Optional['TermsService'] = None
+    _initialized: bool = False
+    
+    def __new__(cls, csv_path: str = 'data/extracted_terms_full.csv'):
+        """Singleton - создаёт только один экземпляр"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
     
     def __init__(self, csv_path: str = 'data/extracted_terms_full.csv'):
         """
-        Инициализация сервиса
+        Инициализация сервиса (выполняется только один раз)
         
         Args:
             csv_path: Путь к CSV файлу с терминами
         """
+        # Пропускаем повторную инициализацию
+        if TermsService._initialized:
+            return
+            
         self.csv_path = Path(csv_path)
         self.terms: List[Dict[str, str]] = []
+        
+        # Кэши для ускорения работы
+        self._categories_cache: Dict[str, List[str]] = {}
+        self._subcategories_cache: Dict[str, List[str]] = {}
+        
         self._load_terms()
+        TermsService._initialized = True
     
     def _load_terms(self) -> None:
         """Загружает термины из CSV файла в память"""
         try:
             with open(self.csv_path, 'r', encoding='utf-8') as file:
-                # Используем quoting=csv.QUOTE_MINIMAL для корректной обработки запятых
                 reader = csv.DictReader(file, quoting=csv.QUOTE_MINIMAL)
-                # Очищаем данные от лишних пробелов
                 self.terms = []
                 for row in reader:
-                    cleaned_row = {
-                        key.strip(): value.strip() if value else '' 
-                        for key, value in row.items()
-                    }
-                    self.terms.append(cleaned_row)
+                    # Пропускаем строки с пустыми ключами
+                    cleaned_row = {}
+                    for key, value in row.items():
+                        if key is not None:
+                            clean_key = key.strip() if key else ''
+                            clean_value = value.strip() if value else ''
+                            if clean_key:  # Только если ключ не пустой
+                                cleaned_row[clean_key] = clean_value
+                    
+                    # Добавляем только если есть термин
+                    if cleaned_row.get('term'):
+                        self.terms.append(cleaned_row)
+                        
             print(f"[OK] Загружено {len(self.terms)} терминов из {self.csv_path}")
+            
+            # Предварительно кэшируем категории
+            self._build_cache()
+            
         except FileNotFoundError:
             print(f"[ERROR] Файл {self.csv_path} не найден")
             self.terms = []
@@ -42,9 +72,35 @@ class TermsService:
             print(f"[ERROR] Ошибка при загрузке CSV: {e}")
             self.terms = []
     
+    def _build_cache(self) -> None:
+        """Строит кэш категорий и подкатегорий для быстрого доступа"""
+        for lang in ['kk', 'ru']:
+            categories: Set[str] = set()
+            
+            for term in self.terms:
+                if term.get('lang') == lang:
+                    cat = term.get('category', '').strip()
+                    subcat = term.get('subcategory', '').strip()
+                    
+                    if cat:
+                        categories.add(cat)
+                        
+                        # Кэш подкатегорий
+                        cache_key = f"{cat}:{lang}"
+                        if cache_key not in self._subcategories_cache:
+                            self._subcategories_cache[cache_key] = set()
+                        if subcat:
+                            self._subcategories_cache[cache_key].add(subcat)
+            
+            self._categories_cache[lang] = sorted(list(categories))
+        
+        # Преобразуем set в list для подкатегорий
+        for key in self._subcategories_cache:
+            self._subcategories_cache[key] = sorted(list(self._subcategories_cache[key]))
+    
     def get_categories(self, lang: str = 'kk') -> List[str]:
         """
-        Получить список всех уникальных категорий
+        Получить список всех уникальных категорий (из кэша)
         
         Args:
             lang: Язык для фильтрации ('kk' или 'ru')
@@ -52,19 +108,11 @@ class TermsService:
         Returns:
             Отсортированный список уникальных категорий
         """
-        categories: Set[str] = set()
-        
-        for term in self.terms:
-            if term.get('lang') == lang:
-                category = term.get('category', '').strip()
-                if category:
-                    categories.add(category)
-        
-        return sorted(list(categories))
+        return self._categories_cache.get(lang, [])
     
     def get_subcategories(self, category: str, lang: str = 'kk') -> List[str]:
         """
-        Получить список подкатегорий для указанной категории
+        Получить список подкатегорий для указанной категории (из кэша)
         
         Args:
             category: Название категории
@@ -73,16 +121,8 @@ class TermsService:
         Returns:
             Отсортированный список уникальных подкатегорий
         """
-        subcategories: Set[str] = set()
-        
-        for term in self.terms:
-            if (term.get('category') == category and 
-                term.get('lang') == lang):
-                subcategory = term.get('subcategory', '').strip()
-                if subcategory:
-                    subcategories.add(subcategory)
-        
-        return sorted(list(subcategories))
+        cache_key = f"{category}:{lang}"
+        return self._subcategories_cache.get(cache_key, [])
     
     def get_terms_by_category(
         self,
@@ -121,16 +161,6 @@ class TermsService:
     ) -> List[Dict[str, str]]:
         """
         Поиск терминов внутри отфильтрованной выборки
-        
-        Args:
-            query: Поисковый запрос
-            category: Категория для фильтрации
-            subcategory: Подкатегория для фильтрации
-            lang: Язык для фильтрации
-            max_results: Максимальное количество результатов
-            
-        Returns:
-            Список найденных терминов
         """
         if not query:
             return []
@@ -141,7 +171,6 @@ class TermsService:
         description_matches = []
         
         for term in self.terms:
-            # Проверяем фильтры
             if not (term.get('category') == category and
                     term.get('subcategory') == subcategory and
                     term.get('lang') == lang):
@@ -150,56 +179,12 @@ class TermsService:
             term_name = term.get('term', '').lower()
             description = term.get('description', '').lower()
             
-            # Точное совпадение в названии
             if term_name == query_lower:
                 exact_matches.append(term)
-            # Частичное совпадение в названии
             elif query_lower in term_name:
                 partial_matches.append(term)
-            # Совпадение в описании
             elif query_lower in description:
                 description_matches.append(term)
         
-        # Возвращаем результаты в порядке приоритета
         results = exact_matches + partial_matches + description_matches
-        
         return results[:max_results]
-    
-    def search(self, query: str, max_results: int = 5) -> List[Dict[str, str]]:
-        """
-        Глобальный поиск терминов по запросу (устаревший метод, оставлен для совместимости)
-        
-        Выполняет:
-        1. Точный поиск (term == query)
-        2. Частичный поиск (query in term)
-        
-        Args:
-            query: Поисковый запрос
-            max_results: Максимальное количество результатов (по умолчанию 5)
-            
-        Returns:
-            Список найденных терминов (максимум max_results)
-        """
-        if not query:
-            return []
-        
-        query_lower = query.lower().strip()
-        exact_matches = []
-        partial_matches = []
-        
-        for term in self.terms:
-            term_name = term.get('term', '').lower()
-            
-            # Точное совпадение
-            if term_name == query_lower:
-                exact_matches.append(term)
-            # Частичное совпадение
-            elif query_lower in term_name:
-                partial_matches.append(term)
-        
-        # Возвращаем сначала точные совпадения, потом частичные
-        results = exact_matches + partial_matches
-        
-        # Ограничиваем количество результатов
-        return results[:max_results]
-

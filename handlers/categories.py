@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from models import UserState
 from keyboards import get_subcategories_keyboard, get_results_keyboard
 from services import TermsService
-from utils.texts import get_text, translate_category
+from utils.texts import get_text, translate_category, translate_subcategory
 from utils.formatter import format_results_page
 from utils.category_mapper import get_mapper
 
@@ -121,10 +121,11 @@ async def handle_subcategory_selection(callback: CallbackQuery, state: FSMContex
     per_page = 10
     total_count = len(terms)
     
-    # Формируем заголовок с категорией и подкатегорией
+    # Формируем заголовок с категорией и подкатегорией (с переводом)
     category_display = translate_category(category, lang) if lang == 'ru' else category
+    subcategory_display = translate_subcategory(subcategory, lang) if lang == 'ru' else subcategory
     header = get_text('results_found', lang, count=total_count)
-    header += f"\n📂 {category_display} / {subcategory}\n\n"
+    header += f"\n📂 {category_display} / {subcategory_display}\n\n"
     
     results_text = format_results_page(terms, page=1, per_page=per_page, show_lang=False, show_category=False)
     
