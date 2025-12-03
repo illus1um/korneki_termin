@@ -70,7 +70,7 @@ async def cmd_menu(message: Message, state: FSMContext):
     
     # Формируем сообщение и клавиатуру
     message_text = get_text('choose_category', lang)
-    keyboard = get_categories_keyboard(categories, lang=lang)
+    keyboard = get_categories_keyboard(categories, lang=lang, user_id=message.from_user.id)
     
     await message.answer(
         text=message_text,
@@ -108,7 +108,7 @@ async def handle_home_action(callback: CallbackQuery, state: FSMContext):
     
     # Формируем сообщение и клавиатуру
     message_text = get_text('choose_category', lang)
-    keyboard = get_categories_keyboard(categories, lang=lang)
+    keyboard = get_categories_keyboard(categories, lang=lang, user_id=callback.from_user.id)
     
     await callback.message.edit_text(
         text=message_text,
@@ -145,7 +145,7 @@ async def handle_back_action(callback: CallbackQuery, state: FSMContext):
         )
         
         message_text = get_text('choose_subcategory', lang, category=category)
-        keyboard = get_subcategories_keyboard(subcategories, lang=lang)
+        keyboard = get_subcategories_keyboard(subcategories, lang=lang, user_id=callback.from_user.id)
         
         await callback.message.edit_text(
             text=message_text,

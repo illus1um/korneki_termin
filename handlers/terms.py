@@ -7,12 +7,14 @@ from aiogram.fsm.context import FSMContext
 
 from models import UserState
 from services import TermsService
+from services.analytics import AnalyticsService
 from keyboards import get_results_keyboard, get_search_keyboard
 from utils.texts import get_text, translate_category, translate_subcategory
 from utils.formatter import format_results_page
 
 router = Router()
 terms_service = TermsService()
+analytics = AnalyticsService()
 
 
 @router.callback_query(F.data == "action:search")
@@ -123,6 +125,19 @@ async def handle_search_query(message: Message, state: FSMContext):
         category=category,
         subcategory=subcategory,
         lang=lang
+    )
+    
+    # Логируем поисковый запрос
+    username = message.from_user.username or message.from_user.first_name
+    analytics.log_event(
+        user_id=message.from_user.id,
+        event_type='search',
+        username=username,
+        lang=lang,
+        category=category,
+        subcategory=subcategory,
+        query=query,
+        results_count=len(results)
     )
     
     if not results:

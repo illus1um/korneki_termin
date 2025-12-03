@@ -1,13 +1,14 @@
 """
 Клавиатуры для категорий и подкатегорий
 """
-from typing import List
+from typing import List, Optional
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from utils.texts import get_text, translate_category, translate_subcategory
 from utils.category_mapper import get_mapper
+from utils.admin_auth import is_admin
 
 
-def get_categories_keyboard(categories: List[str], lang: str = 'kk') -> InlineKeyboardMarkup:
+def get_categories_keyboard(categories: List[str], lang: str = 'kk', user_id: Optional[int] = None) -> InlineKeyboardMarkup:
     """
     Создает клавиатуру с категориями (по 2 кнопки в ряд)
     
@@ -47,18 +48,29 @@ def get_categories_keyboard(categories: List[str], lang: str = 'kk') -> InlineKe
         
         keyboard.append(row)
     
-    # Добавляем кнопку смены языка
-    keyboard.append([
+    # Добавляем кнопки: смена языка и админка (если админ)
+    buttons_row = [
         InlineKeyboardButton(
             text=get_text('btn_change_lang', lang),
             callback_data="action:change_lang"
         )
-    ])
+    ]
+    
+    # Добавляем кнопку админки только для админов
+    if user_id and is_admin(user_id):
+        buttons_row.append(
+            InlineKeyboardButton(
+                text="🔐 Админ",
+                callback_data="admin:main"
+            )
+        )
+    
+    keyboard.append(buttons_row)
     
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-def get_subcategories_keyboard(subcategories: List[str], lang: str = 'kk') -> InlineKeyboardMarkup:
+def get_subcategories_keyboard(subcategories: List[str], lang: str = 'kk', user_id: Optional[int] = None) -> InlineKeyboardMarkup:
     """
     Создает клавиатуру с подкатегориями (по 2 кнопки в ряд)
     

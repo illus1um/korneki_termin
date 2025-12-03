@@ -1,0 +1,8 @@
+timestamp,user_id,username,event_type,lang,category,subcategory,query,results_count
+2025-12-03T09:07:10.860760,123456789,test_user,test_event,kk,Тест,,,5
+2025-12-03T09:10:24.818510,860241269,illus1ve,language_selected,kk,,,,0
+2025-12-03T09:18:30.381527,7780796678,evizzio,language_selected,kk,,,,0
+2025-12-03T09:18:38.655031,7780796678,evizzio,language_selected,ru,,,,0
+2025-12-03T09:18:39.973716,7780796678,evizzio,category_selected,ru,Косметические и эстетические салоны,,,0
+2025-12-03T09:18:41.827022,7780796678,evizzio,subcategory_selected,ru,Косметические и эстетические салоны,Салоны красоты,,175
+2025-12-03T09:19:28.156583,860241269,illus1ve,language_selected,kk,,,,0

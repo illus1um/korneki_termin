@@ -8,10 +8,12 @@ from aiogram.fsm.context import FSMContext
 from models import UserState
 from keyboards import get_categories_keyboard
 from services import TermsService
+from services.analytics import AnalyticsService
 from utils.texts import get_text
 
 router = Router()
 terms_service = TermsService()
+analytics = AnalyticsService()
 
 
 @router.callback_query(F.data.startswith("lang:"))
@@ -26,6 +28,15 @@ async def handle_language_selection(callback: CallbackQuery, state: FSMContext):
     # Извлекаем код языка из callback_data
     lang = callback.data.split(":")[1]  # "lang:kk" -> "kk"
     
+    # Логируем выбор языка
+    username = callback.from_user.username or callback.from_user.first_name
+    analytics.log_event(
+        user_id=callback.from_user.id,
+        event_type='language_selected',
+        username=username,
+        lang=lang
+    )
+    
     # Сохраняем выбранный язык в состоянии
     await state.update_data(language=lang)
     
@@ -37,7 +48,7 @@ async def handle_language_selection(callback: CallbackQuery, state: FSMContext):
     
     # Формируем сообщение и клавиатуру
     message_text = get_text('choose_category', lang)
-    keyboard = get_categories_keyboard(categories, lang=lang)
+    keyboard = get_categories_keyboard(categories, lang=lang, user_id=callback.from_user.id)
     
     # Обновляем сообщение
     await callback.message.edit_text(

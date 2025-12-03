@@ -8,12 +8,14 @@ from aiogram.fsm.context import FSMContext
 from models import UserState
 from keyboards import get_subcategories_keyboard, get_results_keyboard
 from services import TermsService
+from services.analytics import AnalyticsService
 from utils.texts import get_text, translate_category, translate_subcategory
 from utils.formatter import format_results_page
 from utils.category_mapper import get_mapper
 
 router = Router()
 terms_service = TermsService()
+analytics = AnalyticsService()
 
 
 @router.callback_query(F.data.startswith("cat:"))
@@ -39,6 +41,16 @@ async def handle_category_selection(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     lang = data.get('language', 'kk')
     
+    # Логируем выбор категории
+    username = callback.from_user.username or callback.from_user.first_name
+    analytics.log_event(
+        user_id=callback.from_user.id,
+        event_type='category_selected',
+        username=username,
+        lang=lang,
+        category=category
+    )
+    
     # Сохраняем выбранную категорию
     await state.update_data(selected_category=category)
     
@@ -59,7 +71,7 @@ async def handle_category_selection(callback: CallbackQuery, state: FSMContext):
     # Переводим название категории для отображения в сообщении
     category_display = translate_category(category, lang) if lang == 'ru' else category
     message_text = get_text('choose_subcategory', lang, category=category_display)
-    keyboard = get_subcategories_keyboard(subcategories, lang=lang)
+    keyboard = get_subcategories_keyboard(subcategories, lang=lang, user_id=callback.from_user.id)
     
     # Обновляем сообщение
     await callback.message.edit_text(
@@ -103,6 +115,18 @@ async def handle_subcategory_selection(callback: CallbackQuery, state: FSMContex
     # Получаем термины из выбранной категории/подкатегории
     # ВАЖНО: фильтруем по выбранному языку интерфейса
     terms = terms_service.get_terms_by_category(category, subcategory, lang=lang)
+    
+    # Логируем выбор подкатегории
+    username = callback.from_user.username or callback.from_user.first_name
+    analytics.log_event(
+        user_id=callback.from_user.id,
+        event_type='subcategory_selected',
+        username=username,
+        lang=lang,
+        category=category,
+        subcategory=subcategory,
+        results_count=len(terms)
+    )
     
     if not terms:
         await callback.answer(
