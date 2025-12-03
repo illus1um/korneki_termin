@@ -36,6 +36,7 @@ class TermsService:
         # Кэши для ускорения работы
         self._categories_cache: Dict[str, List[str]] = {}
         self._subcategories_cache: Dict[str, List[str]] = {}
+        self._terms_cache: Dict[str, List[Dict[str, str]]] = {}  # Кэш терминов по категориям/подкатегориям
         
         self._load_terms()
         TermsService._initialized = True
@@ -73,12 +74,13 @@ class TermsService:
             self.terms = []
     
     def _build_cache(self) -> None:
-        """Строит кэш категорий и подкатегорий для быстрого доступа"""
+        """Строит кэш категорий, подкатегорий и терминов для быстрого доступа O(1)"""
         for lang in ['kk', 'ru']:
             categories: Set[str] = set()
             
             for term in self.terms:
-                if term.get('lang') == lang:
+                term_lang = term.get('lang', '').strip()
+                if term_lang == lang:
                     cat = term.get('category', '').strip()
                     subcat = term.get('subcategory', '').strip()
                     
@@ -86,17 +88,26 @@ class TermsService:
                         categories.add(cat)
                         
                         # Кэш подкатегорий
-                        cache_key = f"{cat}:{lang}"
-                        if cache_key not in self._subcategories_cache:
-                            self._subcategories_cache[cache_key] = set()
+                        cache_key_subcat = f"{cat}:{lang}"
+                        if cache_key_subcat not in self._subcategories_cache:
+                            self._subcategories_cache[cache_key_subcat] = set()
                         if subcat:
-                            self._subcategories_cache[cache_key].add(subcat)
+                            self._subcategories_cache[cache_key_subcat].add(subcat)
+                        
+                        # Кэш терминов по категории/подкатегории/языку
+                        if subcat:
+                            cache_key_terms = f"{cat}:{subcat}:{lang}"
+                            if cache_key_terms not in self._terms_cache:
+                                self._terms_cache[cache_key_terms] = []
+                            self._terms_cache[cache_key_terms].append(term)
             
             self._categories_cache[lang] = sorted(list(categories))
         
         # Преобразуем set в list для подкатегорий
         for key in self._subcategories_cache:
             self._subcategories_cache[key] = sorted(list(self._subcategories_cache[key]))
+        
+        print(f"[OK] Кэш построен: {len(self._terms_cache)} групп терминов")
     
     def get_categories(self, lang: str = 'kk') -> List[str]:
         """
@@ -132,6 +143,7 @@ class TermsService:
     ) -> List[Dict[str, str]]:
         """
         Получить все термины из указанной категории и подкатегории
+        Оптимизировано: O(1) доступ из кэша вместо O(n) поиска
         
         Args:
             category: Название категории
@@ -141,15 +153,8 @@ class TermsService:
         Returns:
             Список терминов из указанной категории/подкатегории
         """
-        results = []
-        
-        for term in self.terms:
-            if (term.get('category') == category and
-                term.get('subcategory') == subcategory and
-                term.get('lang') == lang):
-                results.append(term)
-        
-        return results
+        cache_key = f"{category}:{subcategory}:{lang}"
+        return self._terms_cache.get(cache_key, [])
     
     def search_in_filtered(
         self,
@@ -161,8 +166,16 @@ class TermsService:
     ) -> List[Dict[str, str]]:
         """
         Поиск терминов внутри отфильтрованной выборки
+        Оптимизировано: использует кэш терминов вместо прохода по всем терминам
         """
         if not query:
+            return []
+        
+        # Получаем термины из кэша O(1) вместо прохода по всем терминам O(n)
+        cache_key = f"{category}:{subcategory}:{lang}"
+        filtered_terms = self._terms_cache.get(cache_key, [])
+        
+        if not filtered_terms:
             return []
         
         query_lower = query.lower().strip()
@@ -170,12 +183,8 @@ class TermsService:
         partial_matches = []
         description_matches = []
         
-        for term in self.terms:
-            if not (term.get('category') == category and
-                    term.get('subcategory') == subcategory and
-                    term.get('lang') == lang):
-                continue
-            
+        # Ищем только в отфильтрованных терминах (обычно 10-200 штук вместо 8000)
+        for term in filtered_terms:
             term_name = term.get('term', '').lower()
             description = term.get('description', '').lower()
             
