@@ -84,8 +84,22 @@ async def handle_admin_stats(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         return
     
-    # Получаем статистику
-    days = int(callback.data.split(":")[-1])
+    # Получаем и валидируем количество дней
+    try:
+        days_str = callback.data.split(":")[-1]
+        days = int(days_str)
+    except (ValueError, IndexError):
+        await callback.answer("❌ Неверный параметр", show_alert=True)
+        return
+    
+    # Валидация через утилиту
+    from utils.validators import validate_days
+    validated_days = validate_days(days, min_days=1, max_days=365)
+    if validated_days is None:
+        await callback.answer("❌ Неверное количество дней (1-365)", show_alert=True)
+        return
+    
+    days = validated_days
     stats = analytics.get_stats(days=days)
     
     # Формируем текст

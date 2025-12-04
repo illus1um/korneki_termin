@@ -11,6 +11,7 @@ from services.analytics import AnalyticsService
 from keyboards import get_results_keyboard, get_search_keyboard
 from utils.texts import get_text, translate_category, translate_subcategory
 from utils.formatter import format_results_page
+from config import settings
 
 router = Router()
 terms_service = TermsService()
@@ -65,7 +66,7 @@ async def handle_cancel_search(callback: CallbackQuery, state: FSMContext):
     await state.set_state(UserState.viewing_results)
     
     # Формируем сообщение с результатами
-    per_page = 10
+    per_page = settings.RESULTS_PER_PAGE
     total_count = len(current_results)
     
     # Формируем заголовок с категорией и подкатегорией (с переводом)
@@ -161,7 +162,7 @@ async def handle_search_query(message: Message, state: FSMContext):
     await state.set_state(UserState.viewing_results)
     
     # Формируем сообщение с результатами
-    per_page = 10
+    per_page = settings.RESULTS_PER_PAGE
     total_count = len(results)
     
     # Формируем заголовок с категорией и подкатегорией (с переводом)

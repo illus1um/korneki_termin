@@ -119,3 +119,15 @@ timestamp,user_id,username,event_type,lang,category,subcategory,query,results_co
 2025-12-04T09:37:26.690530,7780796678,evizzio,category_selected,kk,Сұлулық орындары,,,0
 2025-12-04T09:37:28.209055,7780796678,evizzio,subcategory_selected,kk,Сұлулық орындары,Сұлулық салоны,,176
 2025-12-04T09:37:36.044981,860241269,illus1ve,category_selected,kk,Спорт,,,0
+2025-12-04T09:41:01.585592,860241269,illus1ve,language_selected,ru,,,,0
+2025-12-04T09:57:46.395616,860241269,illus1ve,category_selected,kk,Объекты недвижимости,,,0
+2025-12-04T09:58:17.474123,860241269,illus1ve,language_selected,kk,,,,0
+2025-12-04T09:58:18.294007,860241269,illus1ve,category_selected,kk,Мәдени демалыс ұйымдары,,,0
+2025-12-04T09:58:19.345379,860241269,illus1ve,subcategory_selected,kk,Мәдени демалыс ұйымдары,Моншалар,,18
+2025-12-04T09:58:24.340024,860241269,illus1ve,category_selected,kk,Сұлулық орындары,,,0
+2025-12-04T10:00:05.265876,860241269,illus1ve,category_selected,kk,Туризм,,,0
+2025-12-04T10:00:07.493105,860241269,illus1ve,category_selected,kk,"Облыс, қала, аудан, көшелер",,,0
+2025-12-04T10:00:08.413682,860241269,illus1ve,subcategory_selected,kk,"Облыс, қала, аудан, көшелер",Облыс,,5
+2025-12-04T10:00:09.898496,860241269,illus1ve,category_selected,kk,Мәдени демалыс ұйымдары,,,0
+2025-12-04T10:00:11.375837,860241269,illus1ve,category_selected,kk,Қайырымдылық қорлары,,,0
+2025-12-04T10:00:16.864035,860241269,illus1ve,category_selected,kk,Дүкендер,,,0

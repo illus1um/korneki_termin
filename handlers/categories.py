@@ -12,6 +12,7 @@ from services.analytics import AnalyticsService
 from utils.texts import get_text, translate_category, translate_subcategory
 from utils.formatter import format_results_page
 from utils.category_mapper import get_mapper
+from config import settings
 
 router = Router()
 terms_service = TermsService()
@@ -142,7 +143,7 @@ async def handle_subcategory_selection(callback: CallbackQuery, state: FSMContex
     await state.set_state(UserState.viewing_results)
     
     # Формируем сообщение с результатами
-    per_page = 10
+    per_page = settings.RESULTS_PER_PAGE
     total_count = len(terms)
     
     # Формируем заголовок с категорией и подкатегорией (с переводом)
@@ -173,14 +174,20 @@ async def handle_subcategory_selection(callback: CallbackQuery, state: FSMContex
             reply_markup=keyboard,
             parse_mode="Markdown"
         )
-    except Exception:
+    except Exception as e:
         # Если сообщение слишком длинное, отправляем новое
-        await callback.message.delete()
-        await callback.message.answer(
-            text=message_text,
-            reply_markup=keyboard,
-            parse_mode="Markdown"
-        )
+        from utils.logger import get_logger
+        logger = get_logger('handlers.categories')
+        logger.warning(f"Ошибка при редактировании сообщения: {e}")
+        try:
+            await callback.message.delete()
+            await callback.message.answer(
+                text=message_text,
+                reply_markup=keyboard,
+                parse_mode="Markdown"
+            )
+        except Exception as e2:
+            logger.error(f"Ошибка при отправке нового сообщения: {e2}", exc_info=True)
     
     await callback.answer()
 

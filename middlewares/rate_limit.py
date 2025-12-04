@@ -1,27 +1,29 @@
 """
 Middleware для ограничения частоты запросов (Rate Limiting)
 """
-from collections import defaultdict
+from collections import OrderedDict
 from datetime import datetime, timedelta
-from typing import Dict, Tuple
+from typing import Tuple
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 from utils.logger import get_logger
+from config import settings
 
 logger = get_logger('rate_limit')
 
 
 class RateLimitMiddleware(BaseMiddleware):
     """
-    Middleware для ограничения частоты запросов
+    Middleware для ограничения частоты запросов с ограничением памяти
     """
     
     def __init__(
         self,
-        default_limit: int = 20,  # Запросов
-        default_period: int = 60,  # Секунд
-        admin_limit: int = 100,  # Для админов
-        admin_period: int = 60
+        default_limit: int = None,  # Запросов
+        default_period: int = None,  # Секунд
+        admin_limit: int = None,  # Для админов
+        admin_period: int = None,
+        max_users: int = None  # Максимальное количество пользователей в памяти
     ):
         """
         Args:
@@ -29,14 +31,18 @@ class RateLimitMiddleware(BaseMiddleware):
             default_period: Период в секундах
             admin_limit: Лимит для админов
             admin_period: Период для админов
+            max_users: Максимальное количество пользователей в памяти
         """
-        self.default_limit = default_limit
-        self.default_period = timedelta(seconds=default_period)
-        self.admin_limit = admin_limit
-        self.admin_period = timedelta(seconds=admin_period)
+        # Используем значения из конфига если не указаны
+        self.default_limit = default_limit or settings.RATE_LIMIT_DEFAULT
+        self.default_period = timedelta(seconds=default_period or settings.RATE_LIMIT_PERIOD)
+        self.admin_limit = admin_limit or settings.RATE_LIMIT_ADMIN
+        self.admin_period = timedelta(seconds=admin_period or settings.RATE_LIMIT_ADMIN_PERIOD)
+        self.max_users = max_users or settings.RATE_LIMIT_MAX_USERS
         
         # Хранилище: user_id -> [(timestamp, ...), ...]
-        self._requests: Dict[int, list] = defaultdict(list)
+        # Используем OrderedDict для LRU-подобного поведения
+        self._requests: OrderedDict[int, list] = OrderedDict()
         self._admin_ids: set = set()
     
     def set_admin_ids(self, admin_ids: list[int]):
@@ -50,9 +56,25 @@ class RateLimitMiddleware(BaseMiddleware):
     def _clean_old_requests(self, user_id: int, period: timedelta):
         """Удалить старые запросы"""
         cutoff = datetime.now() - period
-        self._requests[user_id] = [
-            ts for ts in self._requests[user_id] if ts > cutoff
-        ]
+        if user_id in self._requests:
+            self._requests[user_id] = [
+                ts for ts in self._requests[user_id] if ts > cutoff
+            ]
+            # Если список пуст, удаляем пользователя
+            if not self._requests[user_id]:
+                self._requests.pop(user_id, None)
+    
+    def _enforce_memory_limit(self):
+        """Ограничение памяти - удаляем старых пользователей если превышен лимит"""
+        if len(self._requests) > self.max_users:
+            # Удаляем самых старых пользователей (FIFO)
+            users_to_remove = list(self._requests.keys())[:len(self._requests) - self.max_users]
+            for user_id in users_to_remove:
+                self._requests.pop(user_id, None)
+            logger.warning(
+                f"Rate limit memory limit reached ({self.max_users}). "
+                f"Removed {len(users_to_remove)} old users."
+            )
     
     def _check_rate_limit(self, user_id: int) -> Tuple[bool, int]:
         """
@@ -68,13 +90,14 @@ class RateLimitMiddleware(BaseMiddleware):
         # Очищаем старые запросы
         self._clean_old_requests(user_id, period)
         
-        # Проверяем лимит
-        current_requests = len(self._requests[user_id])
+        # Проверяем лимит (пользователь может быть удален после очистки)
+        current_requests = len(self._requests.get(user_id, []))
         
         if current_requests >= limit:
             # Вычисляем время до следующего разрешённого запроса
-            if self._requests[user_id]:
-                oldest_request = min(self._requests[user_id])
+            user_requests = self._requests.get(user_id, [])
+            if user_requests:
+                oldest_request = min(user_requests)
                 next_allowed = oldest_request + period
                 remaining = (next_allowed - datetime.now()).total_seconds()
                 return False, max(0, int(remaining))
@@ -102,6 +125,9 @@ class RateLimitMiddleware(BaseMiddleware):
         if user_id is None:
             return await handler(event, data)
         
+        # Ограничиваем память
+        self._enforce_memory_limit()
+        
         # Проверяем rate limit
         is_allowed, remaining = self._check_rate_limit(user_id)
         
@@ -114,8 +140,14 @@ class RateLimitMiddleware(BaseMiddleware):
             # (пользователь не получит ответ, что и является ограничением)
             return
         
-        # Регистрируем запрос
-        self._requests[user_id].append(datetime.now())
+        # Регистрируем запрос (перемещаем в конец для LRU)
+        now = datetime.now()
+        if user_id in self._requests:
+            self._requests[user_id].append(now)
+            # Перемещаем в конец OrderedDict для LRU
+            self._requests.move_to_end(user_id)
+        else:
+            self._requests[user_id] = [now]
         
         # Продолжаем обработку
         return await handler(event, data)

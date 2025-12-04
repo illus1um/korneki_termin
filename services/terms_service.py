@@ -5,6 +5,9 @@
 import csv
 from typing import List, Dict, Set, Optional
 from pathlib import Path
+from utils.logger import get_logger
+
+logger = get_logger('services.terms_service')
 
 
 class TermsService:
@@ -61,16 +64,16 @@ class TermsService:
                     if cleaned_row.get('term'):
                         self.terms.append(cleaned_row)
                         
-            print(f"[OK] Загружено {len(self.terms)} терминов из {self.csv_path}")
+            logger.info(f"Загружено {len(self.terms)} терминов из {self.csv_path}")
             
             # Предварительно кэшируем категории
             self._build_cache()
             
         except FileNotFoundError:
-            print(f"[ERROR] Файл {self.csv_path} не найден")
+            logger.error(f"Файл {self.csv_path} не найден")
             self.terms = []
         except Exception as e:
-            print(f"[ERROR] Ошибка при загрузке CSV: {e}")
+            logger.error(f"Ошибка при загрузке CSV: {e}", exc_info=True)
             self.terms = []
     
     def _build_cache(self) -> None:
@@ -107,7 +110,7 @@ class TermsService:
         for key in self._subcategories_cache:
             self._subcategories_cache[key] = sorted(list(self._subcategories_cache[key]))
         
-        print(f"[OK] Кэш построен: {len(self._terms_cache)} групп терминов")
+        logger.info(f"Кэш построен: {len(self._terms_cache)} групп терминов")
     
     def get_categories(self, lang: str = 'kk') -> List[str]:
         """
@@ -162,14 +165,20 @@ class TermsService:
         category: str,
         subcategory: str,
         lang: str = 'kk',
-        max_results: int = 50
+        max_results: int = None
     ) -> List[Dict[str, str]]:
         """
         Поиск терминов внутри отфильтрованной выборки
         Оптимизировано: использует кэш терминов вместо прохода по всем терминам
         """
+        from config import settings
+        
         if not query:
             return []
+        
+        # Используем значение из конфига если не указано
+        if max_results is None:
+            max_results = settings.MAX_SEARCH_RESULTS
         
         # Получаем термины из кэша O(1) вместо прохода по всем терминам O(n)
         cache_key = f"{category}:{subcategory}:{lang}"

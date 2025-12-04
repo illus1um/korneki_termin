@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 from collections import Counter, defaultdict
+from utils.logger import get_logger
+
+logger = get_logger('services.analytics')
 
 
 class AnalyticsService:
@@ -58,7 +61,8 @@ class AnalyticsService:
         if self._running:
             return
         
-        self._queue = asyncio.Queue(maxsize=1000)  # Ограничение размера очереди
+        from config import settings
+        self._queue = asyncio.Queue(maxsize=settings.ANALYTICS_QUEUE_MAXSIZE)
         self._running = True
         self._worker_task = asyncio.create_task(self._worker())
     
@@ -72,9 +76,10 @@ class AnalyticsService:
     
     async def _worker(self):
         """Фоновый воркер для записи событий в файл"""
+        from config import settings
         batch = []
-        batch_size = 10  # Записываем батчами для эффективности
-        batch_timeout = 1.0  # Максимальное время ожидания перед записью батча
+        batch_size = settings.ANALYTICS_BATCH_SIZE
+        batch_timeout = settings.ANALYTICS_BATCH_TIMEOUT
         
         while self._running:
             try:
@@ -99,7 +104,7 @@ class AnalyticsService:
                     await self._write_batch(batch)
                     batch = []
             except Exception as e:
-                print(f"[ERROR] Ошибка в воркере аналитики: {e}")
+                logger.error(f"Ошибка в воркере аналитики: {e}", exc_info=True)
         
         # Записываем оставшиеся события перед остановкой
         if batch:
@@ -128,7 +133,7 @@ class AnalyticsService:
                             event['results_count']
                         ])
             except Exception as e:
-                print(f"[ERROR] Ошибка при записи аналитики: {e}")
+                logger.error(f"Ошибка при записи аналитики: {e}", exc_info=True)
         
         await asyncio.to_thread(write_to_file)
     
@@ -177,7 +182,7 @@ class AnalyticsService:
             self._queue.put_nowait(event)
         except asyncio.QueueFull:
             # Если очередь переполнена, просто логируем ошибку (не блокируем обработку)
-            print(f"[WARNING] Очередь аналитики переполнена, событие пропущено")
+            logger.warning("Очередь аналитики переполнена, событие пропущено")
     
     def get_stats(self, days: int = 7) -> Dict:
         """
@@ -203,10 +208,10 @@ class AnalyticsService:
                         event_time = datetime.fromisoformat(row['timestamp'])
                         if event_time >= cutoff_date:
                             events.append(row)
-                    except:
+                    except (ValueError, KeyError):
                         continue
         except Exception as e:
-            print(f"[ERROR] Ошибка при чтении аналитики: {e}")
+            logger.error(f"Ошибка при чтении аналитики: {e}", exc_info=True)
             return self._empty_stats()
         
         if not events:
@@ -298,10 +303,10 @@ class AnalyticsService:
                             int(row.get('results_count', 0)) == 0 and
                             row.get('query')):
                             failed_queries.append(row['query'].lower())
-                    except:
+                    except (ValueError, KeyError):
                         continue
         except Exception as e:
-            print(f"[ERROR] Ошибка при чтении аналитики: {e}")
+            logger.error(f"Ошибка при чтении аналитики: {e}", exc_info=True)
             return []
         
         # Подсчитываем частоту
@@ -336,10 +341,10 @@ class AnalyticsService:
                         if event_time >= cutoff_date:
                             date_key = event_time.date().isoformat()
                             daily_activity[date_key] += 1
-                    except:
+                    except (ValueError, KeyError):
                         continue
         except Exception as e:
-            print(f"[ERROR] Ошибка при чтении аналитики: {e}")
+            logger.error(f"Ошибка при чтении аналитики: {e}", exc_info=True)
             return {}
         
         return dict(daily_activity)

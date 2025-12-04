@@ -69,6 +69,9 @@ logs/
 *.db
 *.sqlite3
 
+# Analytics data
+data/analytics.csv
+
 # OS файлы
 .DS_Store
 Thumbs.db
