@@ -1,6 +1,7 @@
 """
 Сервис для сбора и анализа статистики использования бота
 """
+import asyncio
 import csv
 import json
 from datetime import datetime, timedelta
@@ -10,7 +11,7 @@ from collections import Counter, defaultdict
 
 
 class AnalyticsService:
-    """Сервис для сбора аналитики (Singleton)"""
+    """Сервис для сбора аналитики (Singleton) с асинхронной записью"""
     
     _instance: Optional['AnalyticsService'] = None
     _initialized: bool = False
@@ -35,6 +36,11 @@ class AnalyticsService:
         # Инициализируем файл аналитики
         self._ensure_analytics_file()
         
+        # Асинхронная очередь для событий
+        self._queue: Optional[asyncio.Queue] = None
+        self._worker_task: Optional[asyncio.Task] = None
+        self._running = False
+        
         AnalyticsService._initialized = True
     
     def _ensure_analytics_file(self):
@@ -47,7 +53,86 @@ class AnalyticsService:
                     'lang', 'category', 'subcategory', 'query', 'results_count'
                 ])
     
-    def log_event(
+    async def start(self):
+        """Запуск фонового воркера для записи событий"""
+        if self._running:
+            return
+        
+        self._queue = asyncio.Queue(maxsize=1000)  # Ограничение размера очереди
+        self._running = True
+        self._worker_task = asyncio.create_task(self._worker())
+    
+    async def stop(self):
+        """Остановка фонового воркера"""
+        self._running = False
+        if self._queue:
+            await self._queue.put(None)  # Сигнал остановки
+        if self._worker_task:
+            await self._worker_task
+    
+    async def _worker(self):
+        """Фоновый воркер для записи событий в файл"""
+        batch = []
+        batch_size = 10  # Записываем батчами для эффективности
+        batch_timeout = 1.0  # Максимальное время ожидания перед записью батча
+        
+        while self._running:
+            try:
+                # Ждём событие с таймаутом
+                try:
+                    event = await asyncio.wait_for(self._queue.get(), timeout=batch_timeout)
+                except asyncio.TimeoutError:
+                    # Таймаут - записываем накопленный батч если есть
+                    if batch:
+                        await self._write_batch(batch)
+                        batch = []
+                    continue
+                
+                # Если получили сигнал остановки (None)
+                if event is None:
+                    break
+                
+                batch.append(event)
+                
+                # Записываем батч если накопилось достаточно
+                if len(batch) >= batch_size:
+                    await self._write_batch(batch)
+                    batch = []
+            except Exception as e:
+                print(f"[ERROR] Ошибка в воркере аналитики: {e}")
+        
+        # Записываем оставшиеся события перед остановкой
+        if batch:
+            await self._write_batch(batch)
+    
+    async def _write_batch(self, batch: List[Dict]):
+        """Асинхронная запись батча событий в файл"""
+        if not batch:
+            return
+        
+        # Используем asyncio.to_thread для неблокирующей записи
+        def write_to_file():
+            try:
+                with open(self.analytics_file, 'a', encoding='utf-8', newline='') as f:
+                    writer = csv.writer(f)
+                    for event in batch:
+                        writer.writerow([
+                            event['timestamp'],
+                            event['user_id'],
+                            event['username'],
+                            event['event_type'],
+                            event['lang'],
+                            event['category'],
+                            event['subcategory'],
+                            event['query'],
+                            event['results_count']
+                        ])
+            except Exception as e:
+                print(f"[ERROR] Ошибка при записи аналитики: {e}")
+        
+        await asyncio.to_thread(write_to_file)
+    
+    async def log_event(
         self,
         user_id: int,
         event_type: str,
@@ -59,7 +144,7 @@ class AnalyticsService:
         results_count: int = 0
     ):
         """
-        Логирование события
+        Асинхронное логирование события (неблокирующее)
         
         Args:
             user_id: ID пользователя
@@ -71,22 +156,28 @@ class AnalyticsService:
             query: Поисковый запрос
             results_count: Количество результатов
         """
+        if not self._running or not self._queue:
+            # Если воркер не запущен, запускаем его
+            await self.start()
+        
+        event = {
+            'timestamp': datetime.now().isoformat(),
+            'user_id': user_id,
+            'username': username or '',
+            'event_type': event_type,
+            'lang': lang or '',
+            'category': category or '',
+            'subcategory': subcategory or '',
+            'query': query or '',
+            'results_count': results_count
+        }
+        
         try:
-            with open(self.analytics_file, 'a', encoding='utf-8', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    datetime.now().isoformat(),
-                    user_id,
-                    username or '',
-                    event_type,
-                    lang or '',
-                    category or '',
-                    subcategory or '',
-                    query or '',
-                    results_count
-                ])
-        except Exception as e:
-            print(f"[ERROR] Ошибка при записи аналитики: {e}")
+            # Пытаемся добавить в очередь без блокировки
+            self._queue.put_nowait(event)
+        except asyncio.QueueFull:
+            # Если очередь переполнена, просто логируем ошибку (не блокируем обработку)
+            print(f"[WARNING] Очередь аналитики переполнена, событие пропущено")
     
     def get_stats(self, days: int = 7) -> Dict:
         """

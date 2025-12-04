@@ -43,7 +43,7 @@ async def handle_category_selection(callback: CallbackQuery, state: FSMContext):
     
     # Логируем выбор категории
     username = callback.from_user.username or callback.from_user.first_name
-    analytics.log_event(
+    await analytics.log_event(
         user_id=callback.from_user.id,
         event_type='category_selected',
         username=username,
@@ -118,7 +118,7 @@ async def handle_subcategory_selection(callback: CallbackQuery, state: FSMContex
     
     # Логируем выбор подкатегории
     username = callback.from_user.username or callback.from_user.first_name
-    analytics.log_event(
+    await analytics.log_event(
         user_id=callback.from_user.id,
         event_type='subcategory_selected',
         username=username,

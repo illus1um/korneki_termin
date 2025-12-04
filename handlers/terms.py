@@ -129,7 +129,7 @@ async def handle_search_query(message: Message, state: FSMContext):
     
     # Логируем поисковый запрос
     username = message.from_user.username or message.from_user.first_name
-    analytics.log_event(
+    await analytics.log_event(
         user_id=message.from_user.id,
         event_type='search',
         username=username,

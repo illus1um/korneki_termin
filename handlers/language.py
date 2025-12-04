@@ -30,7 +30,7 @@ async def handle_language_selection(callback: CallbackQuery, state: FSMContext):
     
     # Логируем выбор языка
     username = callback.from_user.username or callback.from_user.first_name
-    analytics.log_event(
+    await analytics.log_event(
         user_id=callback.from_user.id,
         event_type='language_selected',
         username=username,

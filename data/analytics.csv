@@ -6,3 +6,116 @@ timestamp,user_id,username,event_type,lang,category,subcategory,query,results_co
 2025-12-03T09:18:39.973716,7780796678,evizzio,category_selected,ru,Косметические и эстетические салоны,,,0
 2025-12-03T09:18:41.827022,7780796678,evizzio,subcategory_selected,ru,Косметические и эстетические салоны,Салоны красоты,,175
 2025-12-03T09:19:28.156583,860241269,illus1ve,language_selected,kk,,,,0
+2025-12-03T14:21:41.692990,860241269,illus1ve,language_selected,kk,,,,0
+2025-12-03T14:21:42.827231,860241269,illus1ve,category_selected,kk,Зауыттар,,,0
+2025-12-03T14:21:43.968533,860241269,illus1ve,subcategory_selected,kk,Зауыттар,Зауыттар,,5
+2025-12-03T14:21:46.631672,860241269,illus1ve,category_selected,kk,Спорт,,,0
+2025-12-03T15:22:56.716542,860241269,illus1ve,language_selected,kk,,,,0
+2025-12-03T15:22:58.152729,860241269,illus1ve,category_selected,kk,Тағам атаулары,,,0
+2025-12-03T15:22:59.623342,860241269,illus1ve,subcategory_selected,kk,Тағам атаулары,Тағам атаулары,,102
+2025-12-03T15:40:16.680128,860241269,illus1ve,category_selected,kk,Медицина,,,0
+2025-12-03T16:39:44.906897,860241269,illus1ve,language_selected,kk,,,,0
+2025-12-03T16:40:25.416960,860241269,illus1ve,category_selected,kk,Мәдени демалыс ұйымдары,,,0
+2025-12-03T16:40:26.621598,860241269,illus1ve,subcategory_selected,kk,Мәдени демалыс ұйымдары,Концерттік ұйымдар,,30
+2025-12-03T16:40:31.632772,860241269,illus1ve,category_selected,kk,Сұлулық орындары,,,0
+2025-12-03T16:40:32.751107,860241269,illus1ve,subcategory_selected,kk,Сұлулық орындары,Сән үйі,,134
+2025-12-03T16:41:07.358633,694997421,Móldir Myrzataı,language_selected,kk,,,,0
+2025-12-03T16:41:11.403121,694997421,Móldir Myrzataı,category_selected,kk,Дүкендер,,,0
+2025-12-03T16:41:15.290154,694997421,Móldir Myrzataı,subcategory_selected,kk,Дүкендер,Зергерлік дүкен,,19
+2025-12-03T16:41:28.235406,694997421,Móldir Myrzataı,category_selected,kk,Айырбастау пункттері,,,0
+2025-12-03T16:41:31.663279,694997421,Móldir Myrzataı,subcategory_selected,kk,Айырбастау пункттері,Айырбастау пункттері,,43
+2025-12-03T16:43:39.154608,1954455535,Асель,language_selected,kk,,,,0
+2025-12-03T16:44:53.815406,1954455535,Асель,category_selected,kk,Сұлулық орындары,,,0
+2025-12-03T16:45:04.010294,1954455535,Асель,subcategory_selected,kk,Сұлулық орындары,Сән үйі,,134
+2025-12-03T16:45:29.849833,1391469124,Гүлфариза,language_selected,kk,,,,0
+2025-12-03T16:45:38.198924,1391469124,Гүлфариза,category_selected,kk,Спорт,,,0
+2025-12-03T16:45:55.678349,860241269,illus1ve,category_selected,kk,Сұлулық орындары,,,0
+2025-12-03T16:45:56.752790,860241269,illus1ve,subcategory_selected,kk,Сұлулық орындары,Сұлулық салоны,,176
+2025-12-03T16:46:14.672407,860241269,illus1ve,category_selected,kk,Жылжымайтын мүлік орындары,,,0
+2025-12-03T16:46:16.780459,860241269,illus1ve,subcategory_selected,kk,Жылжымайтын мүлік орындары,Пәтер бюролары,,49
+2025-12-03T16:47:42.571552,1418222530,ASEL,language_selected,kk,,,,0
+2025-12-03T16:47:51.009285,1418222530,ASEL,category_selected,kk,Дүкендер,,,0
+2025-12-03T16:47:55.133051,1418222530,ASEL,subcategory_selected,kk,Дүкендер,Аяқкиім дүкені,,15
+2025-12-03T16:55:44.528999,694997421,Móldir Myrzataı,language_selected,ru,,,,0
+2025-12-03T16:55:47.441842,694997421,Móldir Myrzataı,category_selected,ru,Магазины,,,0
+2025-12-03T16:57:08.147404,860241269,illus1ve,language_selected,ru,,,,0
+2025-12-03T16:57:10.931302,860241269,illus1ve,category_selected,ru,Косметические и эстетические салоны,,,0
+2025-12-03T16:57:12.639544,860241269,illus1ve,subcategory_selected,ru,Косметические и эстетические салоны,Салоны красоты,,175
+2025-12-03T16:57:29.271191,860241269,illus1ve,language_selected,kk,,,,0
+2025-12-03T16:57:37.927170,860241269,illus1ve,category_selected,kk,Дүкендер,,,0
+2025-12-03T16:57:40.108769,860241269,illus1ve,subcategory_selected,kk,Дүкендер,Мата дүкені,,40
+2025-12-03T16:58:00.794789,860241269,illus1ve,category_selected,kk,Медицина,,,0
+2025-12-03T16:58:17.374528,860241269,illus1ve,subcategory_selected,kk,Медицина,Дәріхана,,33
+2025-12-03T16:59:15.173393,860241269,illus1ve,category_selected,kk,"Облыс, қала, аудан, көшелер",,,0
+2025-12-03T17:00:15.146426,694997421,Móldir Myrzataı,language_selected,kk,,,,0
+2025-12-03T17:00:19.122230,694997421,Móldir Myrzataı,category_selected,kk,Медицина,,,0
+2025-12-03T17:00:21.584889,694997421,Móldir Myrzataı,subcategory_selected,kk,Медицина,Тіс емханасы,,37
+2025-12-04T07:59:18.706342,860241269,illus1ve,category_selected,kk,Тамақтану орындары,,,0
+2025-12-04T07:59:21.341090,860241269,illus1ve,category_selected,kk,Автосервис,,,0
+2025-12-04T07:59:23.172324,860241269,illus1ve,subcategory_selected,kk,Автосервис,Автожөндеу,,41
+2025-12-04T08:04:29.725702,860241269,illus1ve,category_selected,kk,Сұлулық орындары,,,0
+2025-12-04T08:04:31.823588,860241269,illus1ve,subcategory_selected,kk,Сұлулық орындары,Шаштараз,,24
+2025-12-04T08:10:56.119244,7780796678,evizzio,category_selected,kk,Мәдени демалыс ұйымдары,,,0
+2025-12-04T08:10:56.211409,860241269,illus1ve,category_selected,kk,Медицина,,,0
+2025-12-04T08:10:57.990899,860241269,illus1ve,subcategory_selected,kk,Медицина,Медициналық орталық,,66
+2025-12-04T08:10:58.978437,7780796678,evizzio,subcategory_selected,kk,Мәдени демалыс ұйымдары,Моншалар,,18
+2025-12-04T08:14:56.464138,7780796678,evizzio,category_selected,kk,Медицина,,,0
+2025-12-04T08:14:59.099966,7780796678,evizzio,category_selected,kk,Білім беру ұйымдары,,,0
+2025-12-04T08:15:00.916240,7780796678,evizzio,subcategory_selected,kk,Білім беру ұйымдары,Балаларды дамыту орталығы,,100
+2025-12-04T08:15:08.538417,7780796678,evizzio,category_selected,kk,Зауыттар,,,0
+2025-12-04T08:15:11.311781,7780796678,evizzio,category_selected,kk,Медицина,,,0
+2025-12-04T08:15:12.484712,7780796678,evizzio,subcategory_selected,kk,Медицина,Дәріхана,,33
+2025-12-04T08:15:14.688925,7780796678,evizzio,category_selected,kk,Тамақтану орындары,,,0
+2025-12-04T08:15:16.040598,7780796678,evizzio,subcategory_selected,kk,Тамақтану орындары,Фудкорттар,,32
+2025-12-04T08:16:43.308999,7780796678,evizzio,category_selected,kk,Бизнес орталықтары,,,0
+2025-12-04T08:16:54.355570,7780796678,evizzio,category_selected,kk,Жылжымайтын мүлік орындары,,,0
+2025-12-04T08:16:56.181374,7780796678,evizzio,category_selected,kk,Спорт,,,0
+2025-12-04T08:16:57.226230,7780796678,evizzio,subcategory_selected,kk,Спорт,Секциялар,,50
+2025-12-04T08:17:05.497519,7780796678,evizzio,search,kk,Спорт,Секциялар,ке,11
+2025-12-04T08:17:23.481626,7780796678,evizzio,search,kk,Спорт,Секциялар,команда,1
+2025-12-04T08:17:30.250450,7780796678,evizzio,category_selected,kk,Автосервис,,,0
+2025-12-04T08:17:31.256793,7780796678,evizzio,subcategory_selected,kk,Автосервис,Шинамонтаж,,32
+2025-12-04T08:21:01.647097,860241269,illus1ve,category_selected,kk,Зауыттар,,,0
+2025-12-04T08:21:02.703937,860241269,illus1ve,subcategory_selected,kk,Зауыттар,Ірі өндіріс орындары,,5
+2025-12-04T08:22:31.973215,860241269,illus1ve,category_selected,kk,Медицина,,,0
+2025-12-04T08:22:33.962432,860241269,illus1ve,category_selected,kk,Туризм,,,0
+2025-12-04T08:22:35.452461,860241269,illus1ve,subcategory_selected,kk,Туризм,Хостелдер,,96
+2025-12-04T08:22:46.098719,860241269,illus1ve,category_selected,kk,Туризм,,,0
+2025-12-04T08:22:49.342470,860241269,illus1ve,subcategory_selected,kk,Туризм,Демалыс базалары,,143
+2025-12-04T08:23:37.515266,860241269,illus1ve,category_selected,kk,Медицина,,,0
+2025-12-04T08:23:39.909798,860241269,illus1ve,subcategory_selected,kk,Медицина,Дәріхана,,33
+2025-12-04T08:24:43.853991,860241269,illus1ve,category_selected,kk,Туризм,,,0
+2025-12-04T08:24:45.004388,860241269,illus1ve,subcategory_selected,kk,Туризм,Қонақүй,,318
+2025-12-04T08:25:37.253478,860241269,illus1ve,category_selected,kk,Жылжымайтын мүлік орындары,,,0
+2025-12-04T08:25:39.189027,860241269,illus1ve,subcategory_selected,kk,Жылжымайтын мүлік орындары,Пәтер бюролары,,49
+2025-12-04T08:44:40.667434,7780796678,evizzio,category_selected,kk,Медицина,,,0
+2025-12-04T08:44:42.074994,7780796678,evizzio,subcategory_selected,kk,Медицина,Дәріхана,,33
+2025-12-04T08:54:11.064030,7780796678,evizzio,category_selected,kk,Медицина,,,0
+2025-12-04T08:54:13.725838,7780796678,evizzio,subcategory_selected,kk,Медицина,Тіс емханасы,,37
+2025-12-04T09:17:30.068663,860241269,illus1ve,category_selected,kk,Спорт,,,0
+2025-12-04T09:17:35.859466,860241269,illus1ve,subcategory_selected,kk,Спорт,Фитнес клубтары,,82
+2025-12-04T09:18:30.129510,860241269,illus1ve,category_selected,kk,Дүкендер,,,0
+2025-12-04T09:18:31.089871,860241269,illus1ve,subcategory_selected,kk,Дүкендер,Азық-түлік дүкені,,13
+2025-12-04T09:19:15.563149,860241269,illus1ve,category_selected,kk,Медицина,,,0
+2025-12-04T09:19:17.995380,860241269,illus1ve,category_selected,kk,Қайырымдылық қорлары,,,0
+2025-12-04T09:19:19.045100,860241269,illus1ve,subcategory_selected,kk,Қайырымдылық қорлары,Қайырымдылық қорлары,,18
+2025-12-04T09:19:30.185725,860241269,illus1ve,category_selected,kk,Сұлулық орындары,,,0
+2025-12-04T09:19:31.578835,860241269,illus1ve,subcategory_selected,kk,Сұлулық орындары,Сән үйі,,134
+2025-12-04T09:27:23.965948,860241269,illus1ve,category_selected,kk,Спорт,,,0
+2025-12-04T09:27:25.169629,860241269,illus1ve,subcategory_selected,kk,Спорт,Жаттығу залдары,,139
+2025-12-04T09:28:09.856651,7780796678,evizzio,category_selected,kk,Медицина,,,0
+2025-12-04T09:28:14.066520,7780796678,evizzio,subcategory_selected,kk,Медицина,Тіс емханасы,,37
+2025-12-04T09:36:54.559279,7780796678,evizzio,category_selected,kk,Жылжымайтын мүлік орындары,,,0
+2025-12-04T09:36:54.989308,860241269,illus1ve,category_selected,kk,Медицина,,,0
+2025-12-04T09:36:56.233127,7780796678,evizzio,subcategory_selected,kk,Жылжымайтын мүлік орындары,Жылжымайтын мүлік агенттігі,,31
+2025-12-04T09:36:57.191974,860241269,illus1ve,subcategory_selected,kk,Медицина,Медициналық орталық,,66
+2025-12-04T09:37:00.710862,860241269,illus1ve,category_selected,kk,Туризм,,,0
+2025-12-04T09:37:02.181229,7780796678,evizzio,category_selected,kk,Мәдени демалыс ұйымдары,,,0
+2025-12-04T09:37:14.185276,860241269,illus1ve,category_selected,kk,Медицина,,,0
+2025-12-04T09:37:14.279069,7780796678,evizzio,category_selected,kk,Медицина,,,0
+2025-12-04T09:37:18.230240,860241269,illus1ve,subcategory_selected,kk,Медицина,Дәріхана,,33
+2025-12-04T09:37:18.326860,7780796678,evizzio,subcategory_selected,kk,Медицина,Дәріхана,,33
+2025-12-04T09:37:26.596732,860241269,illus1ve,category_selected,kk,Тағам атаулары,,,0
+2025-12-04T09:37:26.690530,7780796678,evizzio,category_selected,kk,Сұлулық орындары,,,0
+2025-12-04T09:37:28.209055,7780796678,evizzio,subcategory_selected,kk,Сұлулық орындары,Сұлулық салоны,,176
+2025-12-04T09:37:36.044981,860241269,illus1ve,category_selected,kk,Спорт,,,0

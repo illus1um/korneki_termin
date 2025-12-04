@@ -1,32 +1,12 @@
 import asyncio
 import logging
-import os
-from aiohttp import web
 from aiogram import Bot, Dispatcher
 
 from config import settings
 from handlers import routers
-from services import TermsService
+from services import TermsService, AnalyticsService
+from middlewares import RateLimitMiddleware, ErrorHandlerMiddleware
 from utils.category_mapper import get_mapper
-
-
-async def health_check(request):
-    """Простой health check endpoint для Render"""
-    return web.Response(text="OK")
-
-
-async def start_web_server():
-    """Запуск простого HTTP сервера для Render"""
-    app = web.Application()
-    app.router.add_get('/', health_check)
-    app.router.add_get('/health', health_check)
-    
-    port = int(os.getenv('PORT', 8000))
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
-    logging.info(f"HTTP сервер запущен на порту {port}")
 
 
 async def main():
@@ -40,9 +20,6 @@ async def main():
     
     logger = logging.getLogger(__name__)
     logger.info("Запуск бота...")
-    
-    # Запускаем HTTP сервер в фоне (для Render)
-    await start_web_server()
     
     # Инициализация маппера категорий для обоих языков
     logger.info("Инициализация маппера категорий...")
@@ -60,9 +37,37 @@ async def main():
     
     logger.info(f"Маппер инициализирован для обоих языков")
     
+    # Инициализация аналитики и запуск фонового воркера
+    analytics = AnalyticsService()
+    await analytics.start()
+    logger.info("Сервис аналитики запущен")
+    
     # Инициализация бота и диспетчера
     bot = Bot(token=settings.BOT_TOKEN)
     dp = Dispatcher()
+    
+    # Подключение middleware (порядок важен!)
+    rate_limit_middleware = RateLimitMiddleware(
+        default_limit=20,  # 20 запросов
+        default_period=60,  # за 60 секунд
+        admin_limit=100,
+        admin_period=60
+    )
+    # Устанавливаем ID админов если они есть
+    admin_ids = settings.admin_ids_list
+    if admin_ids:
+        rate_limit_middleware.set_admin_ids(admin_ids)
+        logger.info(f"Rate limit для админов: {admin_ids}")
+    
+    error_handler_middleware = ErrorHandlerMiddleware()
+    
+    # Регистрируем middleware (сначала error handler, потом rate limit)
+    dp.message.middleware(error_handler_middleware)
+    dp.callback_query.middleware(error_handler_middleware)
+    dp.message.middleware(rate_limit_middleware)
+    dp.callback_query.middleware(rate_limit_middleware)
+    
+    logger.info("Middleware подключены")
     
     # Подключение всех роутеров из handlers
     for router in routers:
@@ -75,9 +80,20 @@ async def main():
     logger.info("Бот запущен и готов к работе!")
     
     try:
-        await dp.start_polling(bot)
+        # Оптимизированные настройки polling для лучшей производительности
+        # aiogram 3.x автоматически обрабатывает обновления конкурентно
+        # allowed_updates ограничивает типы обновлений для экономии трафика
+        await dp.start_polling(
+            bot,
+            allowed_updates=["message", "callback_query"],  # Только нужные типы обновлений
+            drop_pending_updates=True,
+            # close_bot_session=False - оставляем управление сессией вручную
+        )
     finally:
+        # Останавливаем аналитику перед завершением
+        await analytics.stop()
         await bot.session.close()
+        logger.info("Бот остановлен")
 
 
 if __name__ == '__main__':
